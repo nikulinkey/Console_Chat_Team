@@ -1,6 +1,4 @@
 #pragma once
-#include <string>
-#include <iostream>
 #include <vector>
 #include "Message.h"
 
@@ -15,6 +13,6 @@ class Chat
 	std::vector<Message>& getMessages() { return messages_; }
 public:
 	void chatStart();
-	bool chatWorks() { return chatWorks_; }
-	void chatShutdown() { chatWorks_ = false; }
+	bool chatWorks()  const { return chatWorks_; }
+	void chatShutdown() const { chatWorks_ = false; }
 };
