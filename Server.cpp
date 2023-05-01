@@ -16,7 +16,7 @@ void Server::signIn()
 	std::cout << "password" << std::endl;
 	std::cin >> password;
 
-	currentUser_ = getSomeUser(id);
+	currentUser_ = getUserByID(id);
 	if (currentUser_ == nullptr)
 	{
 		std::cout << "User does not exist" << std::endl;
@@ -40,21 +40,30 @@ void Server::signUp()
 	std::cout << "password" << std::endl;
 	std::cin >> password;
 
-	if (getSomeUser(id) != nullptr || id == "all") // Здесь вылазит ошибка доступа к указателю пока не понятно почему
+	if (getUserByID(id) != nullptr || id == "all") // Здесь вылазит ошибка доступа к указателю пока не понятно почему
 	{
 		throw UserIdExcpt();
 	}
 
 	User newUser(id, name, password);
 	users_.push_back(newUser);
-	currentUser_ = getSomeUser(id);
+	currentUser_ = getUserByID(id);
 	std::cout << "Registration complete! Welcome " << currentUser_ -> getUserName() << std::endl;
 }
-std::shared_ptr<User> Server::getSomeUser(const std::string& id) const
+std::shared_ptr<User> Server::getUserByID(const std::string& id) const
 {
 	for (auto& user : users_)
 	{
 		if (id == user.getUserId())
+			return std::make_shared<User>(user);
+	}
+	return nullptr;
+}
+std::shared_ptr<User> Server::getUserByName(const std::string& name) const
+{
+	for (auto& user : users_)
+	{
+		if (name == user.getUserName())
 			return std::make_shared<User>(user);
 	}
 	return nullptr;
@@ -91,7 +100,7 @@ void Server::serverStart()
 			chatStrat();
 		}
 
-	} while (serverWorks_);
+	} while (serverWorks());
 }
 void Server::chatStrat()
 {
