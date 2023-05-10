@@ -17,7 +17,7 @@ void Server::signIn()
 	std::cout << "password" << std::endl;
 	std::cin >> password;
 
-	currentUser_ = getSomeUser(id);
+	currentUser_ = getUserByID(id);
 	if (currentUser_ == nullptr)
 	{
 		std::cout << "User does not exist" << std::endl;
@@ -48,7 +48,7 @@ void Server::signUp()
 
 	User newUser = User(id, name, password);
 	users_.push_back(newUser);
-	currentUser_ = getSomeUser(id);
+	currentUser_ = getUserByID(id);
 	std::cout << "Registration complete! Welcome " << currentUser_ -> getUserName() << std::endl;
 }
 void Server::sendMessage()
