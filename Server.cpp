@@ -5,12 +5,13 @@
 #include <exception>
 #include "User.h"
 #include "Server.h"
-#include "Chat.h"
+#include "PrivateMessage.h"
+#include "Message.h"
+#include "PrivateMessage.h"
 
 void Server::signIn()
 {
 	std::string id, password;
-
 	std::cout << "User ID: " << std::endl;
 	std::cin >> id;
 	std::cout << "password" << std::endl;
@@ -40,17 +41,48 @@ void Server::signUp()
 	std::cout << "password" << std::endl;
 	std::cin >> password;
 
-	if (getSomeUser(id) != nullptr || id == "all") // Здесь вылазит ошибка доступа к указателю пока не понятно почему
+	if (getUserByID(id) != nullptr || id == "all") 
 	{
 		throw UserIdExcpt();
 	}
 
-	User newUser(id, name, password);
+	User newUser = User(id, name, password);
 	users_.push_back(newUser);
 	currentUser_ = getSomeUser(id);
 	std::cout << "Registration complete! Welcome " << currentUser_ -> getUserName() << std::endl;
 }
-std::shared_ptr<User> Server::getSomeUser(const std::string& id) const
+void Server::sendMessage()
+{
+	std::string to, message;
+	std::cout << "enter user name or 'all'" << std::endl;
+	std::cin >> to;
+	for (auto& u : users_)
+	{
+		if (getUserByName(to) == nullptr && to != "all")
+		{
+			throw UserNameExcpt();
+		}
+	}
+	std::cout << "Enter message:" << std::endl;
+    std::cin.ignore();
+	std::getline(std::cin, message);
+	Message newMessage = Message(currentUser_->getUserName(), to, message);
+	messages_.push_back(newMessage);
+}
+void Server::showMessages()
+{
+	for (auto& mess : messages_)
+		{
+		if (mess.getTo() == "all")
+		{
+			std::cout << mess.getFrom() << " - to all : " << mess.getMessage() << std::endl;
+		}
+		if(mess.getTo() == currentUser_->getUserName() || mess.getFrom() == currentUser_->getUserName())
+			std::cout << mess.getFrom() << " - to " << mess.getTo() << " : " << mess.getMessage() << std::endl;
+		}
+}
+
+std::shared_ptr<User> Server::getUserByID(const std::string& id) const
 {
 	for (auto& user : users_)
 	{
@@ -59,6 +91,16 @@ std::shared_ptr<User> Server::getSomeUser(const std::string& id) const
 	}
 	return nullptr;
 }
+std::shared_ptr<User> Server::getUserByName(const std::string& name) const
+{
+	for (auto& user : users_)
+	{
+		if (name == user.getUserName())
+			return std::make_shared<User>(user);
+	}
+	return nullptr;
+}
+
 void Server::serverStart()
 {
 	currentUser_ = nullptr;
@@ -88,20 +130,9 @@ void Server::serverStart()
 				std::cout << "Wrong choice, try again!" << std::endl;
 				break;
 			}
-			chatStrat();
 		}
-
-	} while (serverWorks_);
-}
-void Server::chatStrat()
-{
-	Chat chat;
-	chat.chatStart();
-}
-void Server::showAllUsers()
-{
-	for (auto& user : users_)
-		std::cout << user.getUserId() << std::endl;
+		chatMenu();
+	} while (serverWorks());
 }
 void Server::serverMenu()
 {
@@ -111,3 +142,43 @@ void Server::serverMenu()
 	std::cout << "print 3 for (Sign_Up)" << std::endl;
 	std::cout << "print 4 for (Quit)" << std::endl;
 }
+
+void Server::chatMenu()
+{
+	std::cout << "1 - Send message" << std::endl;
+	std::cout << "2 - Show chat" << std::endl;
+	std::cout << "3 - Log out" << std::endl;
+
+	char choise;
+	std::cin >> choise;
+
+	switch (choise)
+	{
+	case '1':
+		sendMessage();
+		break;
+	case '2':
+		showMessages();
+		break;
+	case '3':
+		currentUser_ = nullptr;
+		break;
+	default:
+		std::cout << "Wrong choice, try again!" << std::endl;
+		break;
+	}
+
+}
+void Server::chatStarts()
+{
+
+}
+void Server::showAllUsers()
+{
+	for (auto& user : users_)
+		std::cout << user.getUserName() << std::endl;
+}
+
+
+
+
