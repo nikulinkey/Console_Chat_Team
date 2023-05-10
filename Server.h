@@ -1,12 +1,10 @@
 #pragma once
 #include <string>
-#include <iostream>
 #include <vector>
 #include <memory>
 #include <exception>
 #include "User.h"
 #include "Message.h"
-#include "PrivateMessage.h"
 
 struct UserIdExcpt : public std::exception
 {
@@ -20,6 +18,7 @@ struct UserNameExcpt : public std::exception
 class Server
 {
 	bool serverWorks_ = false;
+	bool chatWorks_ = false;
 	std::vector<User>users_;
 	std::vector<Message> messages_;
 
@@ -32,19 +31,20 @@ class Server
 	void showMessages();
 
 	void serverShutdown() { serverWorks_ = false; };
+	void chatShutdown() { chatWorks_ = false; }
+	bool serverWorks() const { return serverWorks_; }
+	bool chatWorks() const { return chatWorks_; }
 
-public:
 	std::shared_ptr<User> getUserByID(const std::string& id) const;
 	std::shared_ptr<User> getUserByName(const std::string& name) const;
 	std::shared_ptr<User> getCurrentUser(const std::string& id) const { return currentUser_; };
 	std::vector<Message>& getMessages() { return messages_; }
 
+public:
+	
+
 	void serverStart();
 	void serverMenu();
-	bool serverWorks() const { return serverWorks_; }
-
 	void chatMenu();
-	void pmStarts();
-	void chatStarts();
 	void showAllUsers();
 };

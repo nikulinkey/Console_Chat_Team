@@ -5,9 +5,8 @@
 #include <exception>
 #include "User.h"
 #include "Server.h"
-#include "PrivateMessage.h"
 #include "Message.h"
-#include "PrivateMessage.h"
+
 
 void Server::signIn()
 {
@@ -20,8 +19,8 @@ void Server::signIn()
 	currentUser_ = getUserByID(id);
 	if (currentUser_ == nullptr)
 	{
-		std::cout << "User does not exist" << std::endl;
 		currentUser_ = nullptr;
+		throw UserNameExcpt();
 	}
 	else if (password != currentUser_->getUserPassword())
 	{
@@ -29,7 +28,7 @@ void Server::signIn()
 		currentUser_ = nullptr;
 	}
 	else
-		std::cout << "Successful authorization. Welcome " << currentUser_ -> getUserName() << std::endl;
+		std::cout << "Successful authorization. Welcome " << currentUser_ -> getUserName() << "!" << std::endl;
 }
 void Server::signUp()
 {
@@ -38,7 +37,7 @@ void Server::signUp()
 	std::cin >> id;
 	std::cout << "Enter your Name" << std::endl;
 	std::cin >> name;
-	std::cout << "password" << std::endl;
+	std::cout << "Enter your Password" << std::endl;
 	std::cin >> password;
 
 	if (getUserByID(id) != nullptr || id == "all") 
@@ -49,7 +48,7 @@ void Server::signUp()
 	User newUser = User(id, name, password);
 	users_.push_back(newUser);
 	currentUser_ = getUserByID(id);
-	std::cout << "Registration complete! Welcome " << currentUser_ -> getUserName() << std::endl;
+	std::cout << "Registration complete! Welcome " << currentUser_ -> getUserName() << "!" << std::endl;
 }
 void Server::sendMessage()
 {
@@ -71,15 +70,15 @@ void Server::sendMessage()
 }
 void Server::showMessages()
 {
+	std::cout << "______Chat:______" << std::endl;
 	for (auto& mess : messages_)
+	{
+		if (mess.getFrom() == currentUser_->getUserName() || mess.getTo() == currentUser_->getUserName() || mess.getTo() == "all")
 		{
-		if (mess.getTo() == "all")
-		{
-			std::cout << mess.getFrom() << " - to all : " << mess.getMessage() << std::endl;
+			std::cout << "@" << mess.getFrom() << " - to " << mess.getTo() << " : " << mess.getMessage() << std::endl;
 		}
-		if(mess.getTo() == currentUser_->getUserName() || mess.getFrom() == currentUser_->getUserName())
-			std::cout << mess.getFrom() << " - to " << mess.getTo() << " : " << mess.getMessage() << std::endl;
-		}
+	}
+	std::cout << "_______End_______" << std::endl;
 }
 
 std::shared_ptr<User> Server::getUserByID(const std::string& id) const
@@ -107,8 +106,7 @@ void Server::serverStart()
 	do 
 	{
 		serverWorks_ = true;
-		while (currentUser_ == nullptr)
-		{
+		
 			serverMenu();
 			char choise;
 			std::cin >> choise;
@@ -118,60 +116,83 @@ void Server::serverStart()
 				showAllUsers();
 				break;
 			case '2':
-				signIn();
+				try
+				{
+					signIn();
+				}
+				catch (const std::exception& except)
+				{
+					std::cout << except.what() << std::endl;
+				}
 				break;
 			case '3':
-				signUp();
+				try 
+				{
+					signUp();
+				}
+				catch (const std::exception& except)
+				{
+					std::cout << except.what() << std::endl;
+				}
 				break;
 			case '4':
+				currentUser_ = nullptr;
 				serverShutdown();
 				break;
 			default:
 				std::cout << "Wrong choice, try again!" << std::endl;
 				break;
-			}
-		}
-		chatMenu();
+			}	
+		
+		if(currentUser_ != nullptr)
+			chatMenu();
 	} while (serverWorks());
 }
 void Server::serverMenu()
 {
-	std::cout << "Login or Register" << std::endl;
-	std::cout << "print 1 for (Show Users)" << std::endl;
-	std::cout << "print 2 for (Sign_In)" << std::endl;
-	std::cout << "print 3 for (Sign_Up)" << std::endl;
-	std::cout << "print 4 for (Quit)" << std::endl;
+	std::cout << "|Login or Register       |" << std::endl;
+	std::cout << "|print 1 for (Show Users)|" << std::endl;
+	std::cout << "|print 2 for (Sign_In)   |" << std::endl;
+	std::cout << "|print 3 for (Sign_Up)   |" << std::endl;
+	std::cout << "|print 4 for (Quit)      |" << std::endl;
+	std::cout << "|________________________|" << std::endl;
 }
 
 void Server::chatMenu()
 {
-	std::cout << "1 - Send message" << std::endl;
-	std::cout << "2 - Show chat" << std::endl;
-	std::cout << "3 - Log out" << std::endl;
+	chatWorks_ = true;
+	do {
+		std::cout << "|1 - Send message|" << std::endl;
+		std::cout << "|2 - Show chat   |" << std::endl;
+		std::cout << "|3 - Log out     |" << std::endl;
+		std::cout << "|________________|" << std::endl;
 
-	char choise;
-	std::cin >> choise;
+		char choise;
+		std::cin >> choise;
 
-	switch (choise)
-	{
-	case '1':
-		sendMessage();
-		break;
-	case '2':
-		showMessages();
-		break;
-	case '3':
-		currentUser_ = nullptr;
-		break;
-	default:
-		std::cout << "Wrong choice, try again!" << std::endl;
-		break;
-	}
-
-}
-void Server::chatStarts()
-{
-
+		switch (choise)
+		{
+		case '1':
+			try
+			{
+				sendMessage();
+			}
+			catch (const std::exception& except)
+			{
+				std::cout << except.what() << std::endl;
+			}
+			break;
+		case '2':
+			showMessages();
+			break;
+		case '3':
+			chatShutdown();
+			break;
+		default:
+			std::cout << "Wrong choice, try again!" << std::endl;
+			break;
+		}
+	} while (chatWorks());
 }
 void Server::showAllUsers()
 {
