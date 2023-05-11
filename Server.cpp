@@ -162,10 +162,11 @@ void Server::chatMenu()
 {
 	chatWorks_ = true;
 	do {
-		std::cout << "|1 - Send message|" << std::endl;
-		std::cout << "|2 - Show chat   |" << std::endl;
-		std::cout << "|3 - Log out     |" << std::endl;
-		std::cout << "|________________|" << std::endl;
+		std::cout << "|1 - Send message |" << std::endl;
+		std::cout << "|2 - Show chat    |" << std::endl;
+		std::cout << "|3 - Log out      |" << std::endl;
+		std::cout << "|4 - Personal chat|" << std::endl;
+		std::cout << "|_________________|" << std::endl;
 
 		char choise;
 		std::cin >> choise;
@@ -188,6 +189,9 @@ void Server::chatMenu()
 		case '3':
 			chatShutdown();
 			break;
+		case '4':
+			pmMenu();
+			break;
 		default:
 			std::cout << "Wrong choice, try again!" << std::endl;
 			break;
@@ -200,6 +204,35 @@ void Server::showAllUsers()
 		std::cout << user.getUserName() << std::endl;
 }
 
+std::shared_ptr<PM> Server::getPchatByRoom(const std::string& rname) const
+{
+	for (auto& room : pchats_)
+	{
+		if (rname == room.getRoomName())
+			return std::make_shared<PM>(room);
+	}
+	return nullptr;
+}
 
+void Server::pmMenu()
+{
+	std::string to, room;
+	std::cout << "Enter partner name:" << std::endl;
+	std::cin >> to;
+	std::cout << "Enter room name:" << std::endl;
+	std::cin >> room;
+
+		if (getPchatByRoom(room) != nullptr)
+		{
+			currentPchat_ = getPchatByRoom(room);
+		}
+		if (getPchatByRoom(room) == nullptr)
+		{
+			PM pm = PM(currentUser_->getUserName(), to, room);
+			pchats_.push_back(pm);
+			currentPchat_ = getPchatByRoom(room);
+		}
+		currentPchat_->pmStart();
+}
 
 
